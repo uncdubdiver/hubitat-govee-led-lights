@@ -39,7 +39,15 @@ This index.html file will provide you step-by-step procedures on add the device 
 - H6003
 - H6148
 
-### DTH DISCLAIMER
+### DEBUGGING/TROUBLESHOOTING
+If you edit the driver code in your local Hubitat environment, search for the "refresh()" function and enable debugging by setting the following:  
+```groovy
+set_DEBUG("off")
+...to...
+set_DEBUG("on")
+```
+
+### DRIVER DISCLAIMER
 After further testing, the API call for getting the device state may not work for all supported Govee models listed above.  Determing if it's a problem with the Govee API or if it's not supported due to the nature of the device model.
 
 ### DISCLOSURE
