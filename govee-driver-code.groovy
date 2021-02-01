@@ -9,9 +9,13 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+
+import hubitat.helper.ColorUtils
+
 metadata {
 	definition (
-		name: "Govee LED Strips (DBDEV)",
+		name: "Govee LED Strips",
+		version: "v1",
 		namespace: "dbdevelopment",
 		author: "Dean Berman",
 		description: "Govee LED Strips Integration",
@@ -21,6 +25,7 @@ metadata {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Color Control"
+		capability "ColorMode"
 		// capability "Power Meter"
 		capability "Switch"
 		capability "Refresh"
@@ -117,9 +122,104 @@ preferences {
 	}
 }
 
-// parse events into attributes
+
+
+
+def DEBUG = ""
+
+
+
+//	----------------
+//	SETTER FUNCTIONS
+//	----------------
+def set_DEBUG(id) {
+	state.DEBUG = id
+}
+
+
+
+
+//	-----------------------
+//	GETTER FUNCTIONS - URLS
+//	-----------------------
+def get_DEBUG() {
+	return state.DEBUG
+}
+
+
+
+def refresh() {
+	////////////////////
+	//////////////////// TURN THIS ON OR OFF to enable or disable debugging in the GUI
+	//////////////////// VALUES: on, off
+	////////////////////
+	set_DEBUG("off")
+	
+	//log.debug "DEBUG MODE=" + get_DEBUG()
+	
+	
+	
+	if(get_DEBUG() == "on") { log.trace "refresh()..." }
+	
+	def ret = callURL('devicestate', '')
+	
+	// Handling the power state
+	def power = ret.data["properties"][1]["powerState"]
+	if(get_DEBUG() == "on") { log.debug "[refresh()] - Power=${power}" }
+	if(power == 'on') {
+		on(false)
+	} else {
+		off(false)
+	}
+	
+	// Handling the brightness level
+	def brightness = ret.data["properties"][2]["brightness"]
+	if(get_DEBUG() == "on") { log.debug "[refresh()] -- Brightness=${brightness}" }
+	setLevel(brightness, false);
+	
+	// Handling the color
+	List rgb = [ret.data["properties"][3]["color"]["r"], ret.data["properties"][3]["color"]["g"], ret.data["properties"][3]["color"]["b"]]
+	if(get_DEBUG() == "on") { log.debug "[refresh()] --- R=${rgb[0]}, G=${rgb[1]}, B=${rgb[2]}" }
+	setColorRGB(rgb, false)
+	
+	unschedule()
+	// Set it to run once a minute (continuous polling)
+	if(get_DEBUG() == "on") { log.debug "[refresh()] ---- Polling/Refresh every 2 minutes" }
+	runIn(120, refresh)
+}
+
+
+
+
+
+// handle commands
+def on(callapi=true) {
+	if(get_DEBUG() == "on") { log.trace "on(${callapi})..." }
+	
+	if(callapi) {
+		if(get_DEBUG() == "on") { log.debug "[on()] - Executing callURL for devicecontrol-power = on" }
+		callURL('devicecontrol-power', "on")
+	}
+	
+	if(get_DEBUG() == "on") { log.debug "[on()] -- sendEvent to switch = on" }
+	sendEvent(name: "switch", value: "on")
+}
+
+def off(callapi=true) {
+	if(get_DEBUG() == "on") { log.trace "off(${callapi})..." }
+	
+	if(callapi) {
+		if(get_DEBUG() == "on") { log.debug "[off()] - Executing callURL for devicecontrol-power = off" }
+		callURL('devicecontrol-power', "off")
+	}
+	
+	if(get_DEBUG() == "on") { log.debug "[off()] -- sendEvent to switch = off" }
+	sendEvent(name: "switch", value: "off")
+}
+
+/*
 def parse(description) {
-	log.trace "Executing 'parse($description)'..."
+	if(get_DEBUG() == "on") { log.trace "parse(${description})..." }
 	
 	def results = []
 	def map = description
@@ -132,26 +232,8 @@ def parse(description) {
 	}
 	results
 }
-
-// handle commands
-def on() {
-	log.trace "Executing 'on()'..."
-	
-	callURL('devicecontrol-power', "on")
-	
-	sendEvent(name: "switch", value: "on")
-}
-
-def off() {
-	log.trace "Executing 'off()'..."
-	
-	callURL('devicecontrol-power', "off")
-	
-	sendEvent(name: "switch", value: "off")
-}
-
 def nextLevel() {
-	log.trace "Executing 'nextLevel()'..."
+	if(get_DEBUG() == "on") { log.trace "nextLevel()..." }
 	
 	def level = device.latestValue("level") as Integer ?: 0
 	if (level <= 100) {
@@ -160,59 +242,135 @@ def nextLevel() {
 	else {
 		level = 25
 	}
-	setLevel(level)
+	setLevel(level, true)
 }
-
-def setLevel(percent, rate = null) {
-	log.trace "Executing 'setLevel($percent, this)'..."
-	
-	sendEvent(name: "level", value: percent)
-	def power = Math.round(percent / 1.175) * 0.1
-	
-	callURL('devicecontrol-brightness', percent)
-	
-	// sendEvent(name: "power", value: power)
-}
-
+*/
 def setSaturation(percent) {
-	log.trace "Executing 'setSaturation($percent)'..."
+	if(get_DEBUG() == "on") { log.trace "setSaturation(${percent})..." }
 	
+	log.info "[setSaturation()] - Govee API does not support SATURATION at this time, so this value is being set within Hubitat"
+	
+	//if(get_DEBUG() == "on") { log.debug "[setSaturation()] - saturation = ${percent}" }
 	sendEvent(name: "saturation", value: percent)
 }
 
 def setHue(percent) {
-	log.trace "Executing 'setHue($percent)'..."
+	if(get_DEBUG() == "on") { log.trace "setHue(${percent})..." }
 	
+	log.info "[setHue()] - Govee API does not support HUB at this time, so this value is being set within Hubitat"
+	
+	//if(get_DEBUG() == "on") { log.debug "[setHue()] - HUE = ${percent}" }
 	sendEvent(name: "hue", value: percent)
 }
 
-def setColor(value) {
-	log.trace "Executing 'setColor($value)'..."
+def setLevel(percent, callapi=true) {
+	if(get_DEBUG() == "on") { log.trace "setLevel(${percent}, ${callapi})..." }
 	
-	if (value.hue) { sendEvent(name: "hue", value: value.hue)}
-	if (value.saturation) { sendEvent(name: "saturation", value: value.saturation)}
-	if (value.hex) { sendEvent(name: "color", value: value.hex)}
-	if (value.level) { sendEvent(name: "level", value: value.level)}
-	if (value.switch) { sendEvent(name: "switch", value: value.switch)}
+	if(get_DEBUG() == "on") { log.debug "[setLevel()] - sendEvent level = ${percent}" }
+	sendEvent(name: "level", value: percent)
+	def power = Math.round(percent / 1.175) * 0.1
 	
-	def rgb
-	// state.staged << value.subMap("hue", "saturation") // stage ST hue and saturation attributes
-	def hex = colorUtil.hsvToHex(Math.round(value.hue) as int, Math.round(value.saturation) as int) // convert to hex
-	log.trace "HEX=${hex}"
-	// state.staged << [color: hex] // stage ST RGB color attribute
-	rgb = colorUtil.hexToRgb(hex) // separate RGB elements for zwave setter
+	if(callapi) {
+		if(get_DEBUG() == "on") { log.debug "[setLevel()] -- Executing callURL for devicecontrol-brightness = ${percent}" }
+		callURL('devicecontrol-brightness', percent)
+	}
+}
+def setColorRGB(rgb, callapi=true) {
+	if(get_DEBUG() == "on") { log.trace "setColorRGB(${rgb}, ${callapi})..." }
+	
+	// Handling the color
+	if(get_DEBUG() == "on") { log.debug "[setColorRGB()] - R=${rgb[0]}, G=${rgb[1]}, B=${rgb[2]}" }
+	//def hex = colorUtil.rgbToHex(rgb[0], rgb[1], rgb[2])
+	def hex = String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2])
+	if(get_DEBUG() == "on") { log.debug "[setColorRGB()] -- HEX=${hex}" }
+	sendEvent(name: "color", value: hex)
+	
+	if(callapi) {
+		if(get_DEBUG() == "on") { log.debug "[setColorRGB()] --- Executing callURL for devicecontrol-rgb = ${rgb}" }
+		callURL('devicecontrol-rgb', rgb)
+	}
+}
+def setColor(Map value) {
+	if(get_DEBUG() == "on") { log.trace "setColor(${value})..." }
+	
+	// Handling the color
+	if(get_DEBUG() == "on") { log.debug "[setColor()] - H=${value.hue}, S=${value.saturation}, L=${value.level}" }
+	
+	if(value.level == null) {
+		value.level = device.currentValue("level")
+		if(get_DEBUG() == "on") { log.debug "[setColor()] -- RESET HSL - H=${value.hue}, S=${value.saturation}, L=${value.level}" }
+	}
+	
+	def rgb = hsl2rgb(value.hue, value.saturation, value.level)
+	
+	// Handling the color
+	if(get_DEBUG() == "on") { log.debug "[setColor()] -- R=${rgb[0]}, G=${rgb[1]}, B=${rgb[2]}" }
+	def hex = String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2])
+	
+	if(get_DEBUG() == "on") { log.debug "[setColor()] --- HEX=${hex}" }
+	sendEvent(name: "color", value: hex)
+	
+	if(get_DEBUG() == "on") { log.debug "[setColor()] ---- Executing callURL for devicecontrol-rgb = ${rgb}" }
 	callURL('devicecontrol-rgb', rgb)
 }
 
-def reset() {
-	log.trace "Executing 'reset()'..."
+
+
+
+
+def hsl2rgb(H, S, L) {
+	if(get_DEBUG() == "on") { log.trace "hsl2rgb(${H}, ${S}, ${L})..." }
 	
-	setAdjustedColor([level:100, hex:"#90C638", saturation:56, hue:23])
+	if(get_DEBUG() == "on") { log.debug "[hsl2rgb()] - Getting RGB..." }
+	List rgb = ColorUtils.hsvToRGB([H, S, L])
+	if(get_DEBUG() == "on") { log.debug "[hsl2rgb()] -- R=${rgb[0]}, G=${rgb[1]}, B=${rgb[2]}..." }
+	
+	return rgb
+}
+def hue2rgb(P, Q, T) {
+	if(get_DEBUG() == "on") { log.trace "hue2rgb(${P}, ${Q}, ${T})..." }
+	
+	if(get_DEBUG() == "on") { log.debug "[hue2rgb()] - Calculating values..." }
+	
+	if(T < 0) T += 1;
+	if(T > 1) T -= 1;
+	if(T < 1/6) return P + (Q - P) * 6 * T;
+	if(T < 1/2) return Q;
+	if(T < 2/3) return P + (Q - P) * (2/3 - T) * 6;
+	return P;
+}
+
+
+
+
+
+
+
+def reset() {
+	if(get_DEBUG() == "on") { log.trace "reset()..." }
+	
+	def ret = callURL('devicestate', '')
+	
+	// Handling the power state
+	if(get_DEBUG() == "on") { log.debug "[reset()] - Power=on" }
+	on(true)
+	
+	// Handling the brightness level
+	if(get_DEBUG() == "on") { log.debug "[refresh()] -- Brightness=100" }
+	setLevel(100, true);
+	
+	// Handling the color
+	List rgb = [255, 255, 255]
+	if(get_DEBUG() == "on") { log.debug "[refresh()] --- R=${rgb[0]}, G=${rgb[1]}, B=${rgb[2]}" }
+	setColorRGB(rgb, true)
 }
 
 def setAdjustedColor(value) {
-	log.trace "Executing 'setAdjustedColor($value)'..."
+	if(get_DEBUG() == "on") { log.trace "setAdjustedColor(${value})..." }
 	
+	log.error "[setSaturation()] - Sorry but the Govee API does not support SATURATION at this time, so this is being skipped"
+	
+/*
 	if (value) {
 		log.trace "setAdjustedColor: ${value}"
 		def adjusted = value + [:]
@@ -221,15 +379,18 @@ def setAdjustedColor(value) {
 		adjusted.level = null
 		setColor(adjusted)
 	}
+*/
 }
 
 def installed() {
-	log.trace "Executing 'installed()'.."
+	if(get_DEBUG() == "on") { log.trace "installed()..." }
+	
 	refresh()
 }
 
 def updated() {
-	log.trace "Executing 'updated()'.."
+	if(get_DEBUG() == "on") { log.trace "updated()..." }
+	
 	refresh()
 	
 	// unschedule()
@@ -238,65 +399,33 @@ def updated() {
 }
 
 def poll() {
-	log.trace "Executing 'poll()'..."
+	if(get_DEBUG() == "on") { log.trace "poll()..." }
 	
 	refresh()
 }
 
-def refresh() {
-	log.trace "Executing 'refresh()'..."
-	
-	def ret = callURL('devicestate', '')
-	
-	// Handling the power state
-	def power = ret.data["properties"][1]["powerState"]
-	// log.debug "POWER=${power}"
-	sendEvent(name: "switch", value: power)
-	
-	// Handling the brightness level
-	def brightness = ret.data["properties"][2]["brightness"]
-	// log.debug "BRIGHTNESS=${brightness}"
-	sendEvent(name: "level", value: brightness)
-	
-	// Handling the color
-	def rgb = [ret.data["properties"][3]["color"]["r"], ret.data["properties"][3]["color"]["g"], ret.data["properties"][3]["color"]["b"]]
-	// log.debug "RGB=${rgb}"
-	def hex  = colorUtil.rgbToHex(rgb[0], rgb[1], rgb[2])
-	// log.debug "HEX=${hex}"
-	sendEvent(name: "color", value: hex)
-	
-	unschedule()
-	// Set it to run every 5 minutes
-	// runEvery5Minutes(refresh)
-	// Set it to run once a minute (continuous polling)
-	runEvery1Minute(refresh)
-}
-
 def adjustOutgoingHue(percent) {
-	log.trace "Executing 'adjustOutgoingHue($percent)'..."
+	if(get_DEBUG() == "on") { log.trace "adjustOutgoingHue(${percent})..." }
 	
-	def adjusted = percent
-	if (percent > 31) {
-		if (percent < 63.0) {
-			adjusted = percent + (7 * (percent -30 ) / 32)
+	log.error "[adjustOutgoingHue()] - Sorry but the Govee API does not support HUE at this time, so this is being skipped"
+	
+	/*
+		def adjusted = percent
+		if (percent > 31) {
+			if (percent < 63.0) {
+				adjusted = percent + (7 * (percent -30 ) / 32)
+			}
+			else if (percent < 73.0) {
+				adjusted = 69 + (5 * (percent - 62) / 10)
+			}
+			else {
+				adjusted = percent + (2 * (100 - percent) / 28)
+			}
 		}
-		else if (percent < 73.0) {
-			adjusted = 69 + (5 * (percent - 62) / 10)
-		}
-		else {
-			adjusted = percent + (2 * (100 - percent) / 28)
-		}
-	}
-	log.info "percent: $percent, adjusted: $adjusted"
-	adjusted
+		log.info "percent: $percent, adjusted: $adjusted"
+		adjusted
+	*/
 }
-
-
-
-
-
-
-
 
 
 
@@ -304,9 +433,9 @@ def adjustOutgoingHue(percent) {
 
 // TODO: implement event handlers
 def callURL(apiAction, details) {
-	log.trace "Executing 'callURL($apiAction, $details)'..."
+	if(get_DEBUG() == "on") { log.trace "callURL(${apiAction}, ${details})..." }
 	
-	log.trace "[SETTINGS] APIKEY=${settings.apikey}, ID=${settings.deviceID}, MODEL=${settings.modelNum}"
+	if(get_DEBUG() == "on") { log.debug "[callURL()] - APIKEY=${settings.apikey}, ID=${settings.deviceID}, MODEL=${settings.modelNum}" }
 	
     def method
     def params
@@ -344,6 +473,7 @@ def callURL(apiAction, details) {
 			body: [device: settings.deviceID, model: settings.modelNum, cmd: ["name": "brightness", "value": details]],
         ]
 	} else if(apiAction == 'devicecontrol-rgb') {
+		method = 'PUT'
         params = [
             uri   : "https://developer-api.govee.com",
             path  : '/v1/devices/control',
@@ -353,15 +483,17 @@ def callURL(apiAction, details) {
         ]
     }
     
-	/*
-    log.debug params
-    log.debug "APIACTION=${apiAction}"
-    log.debug "METHOD=${method}"
-    log.debug "URI=${params.uri}${params.path}"
-    log.debug "HEADERS=${params.headers}"
-    log.debug "QUERY=${params.query}"
-    log.debug "BODY=${params.body}"
-	//*/
+	if(get_DEBUG() == "on") {
+		/*
+			log.debug params
+			log.debug "APIACTION=${apiAction}"
+			log.debug "METHOD=${method}"
+			log.debug "URI=${params.uri}${params.path}"
+			log.debug "HEADERS=${params.headers}"
+			log.debug "QUERY=${params.query}"
+			log.debug "BODY=${params.body}"
+		*/
+	}
 	
 	try {
 		if(method == 'GET') {
@@ -370,7 +502,7 @@ def callURL(apiAction, details) {
 				//log.debug "HEADERS="+resp.headers
 				//log.debug "DATA="+resp.data
 				
-				log.debug "response.data="+resp.data
+				if(get_DEBUG() == "on") { log.debug "[callURL()] -- response.data="+resp.data }
 				
 				return resp.data
 			}
@@ -380,7 +512,7 @@ def callURL(apiAction, details) {
 				//log.debug "HEADERS="+resp.headers
 				//log.debug "DATA="+resp.data
 				
-				log.debug "response.data="+resp.data
+				if(get_DEBUG() == "on") { log.debug "[callURL()] -- response.data="+resp.data }
 				
 				return resp.data
 			}
@@ -391,6 +523,6 @@ def callURL(apiAction, details) {
 		log.error "${e}"
 		log.error "callURL() <<<<<<<<<<<<<<<< ERROR <<<<<<<<<<<<<<<<"
 		
-		return 'unknown'
+		return false
 	}
 }

@@ -74,7 +74,7 @@
 							resp += '<div class="row"><div class="col-xs-12">&nbsp;</div></div>';
 							
 							resp += '<div class="row">';
-								resp += '<div class="col-xs-12">Please use the list below to populate the Samsung SmartThings Device preferences page (see setup steps for <strong>Device</strong>).</div>';
+								resp += '<div class="col-xs-12">Please use the list below to populate the Hubitat Device preferences page (see setup steps for <strong>Device</strong>).</div>';
 							resp += '</div>';
 							
 							$('#config-results').html(resp);
@@ -95,20 +95,20 @@
 			<h6>Created/Last Updated: 2020-11-09</h6>
 			<br />
 			
-			<div class="alert alert-danger">IMPORTANT: This is not sponsered or paid for or supported by Govee, this was generated to help anyone else [other than just myself] to get the amazing WiFi Govee LED Lights into Samsung SmartThings for integration, automation, smart panels, ActionTiles, SharpTools, etc.</div>
+			<div class="alert alert-danger">IMPORTANT: This is not sponsered or paid for or supported by Govee, this was generated to help anyone else [other than just myself] to get the amazing WiFi Govee LED Lights into Hubitat for integration, automation, smart panels, ActionTiles, SharpTools, etc.</div>
 			<br />
 			
 			<ul class="nav nav-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#home" role="tab" data-toggle="tab">Home</a></li>
 				<li role="presentation"><a href="#config" role="tab" data-toggle="tab">Configuration</a></li>
-				<li role="presentation"><a href="https://github.com/uncdubdiver/smartthings-govee-led-lights" target="_blank">GitHub</a></li>
+				<li role="presentation"><a href="https://github.com/uncdubdiver/hubitat-govee-led-lights" target="_blank">GitHub</a></li>
 			</ul>
 			
 			<div class="tab-content">
 				<div id="home" class="tab-pane fade active in">
 					<div class="panel panel-default">
 						<div class="panel-body">
-							The Govee LED Lights SmartThings Device Type Handler was generated to fill a need with accessing the WiFi connected Govee LED Lights.
+							The Govee LED Lights Hubitat Device Type was generated to fill a need with accessing the WiFi connected Govee LED Lights.
 							<br /><br />
 							The Device Type Handler is built to handle any of the existing WiFi connected Govee LED Lights that are accesible through their API.
 							<br /><br />
@@ -143,7 +143,7 @@
 								<li>H6148</li>
 							</ul>
 							<br />
-							To get your Govee LED Lights device setup properly within Samsung SmartThings, please follow the steps below.
+							To get your Govee LED Lights device setup properly within Hubitat, please follow the steps below.
 							<br />
 							<h4>Govee API Key</h4>
 							<ol>
@@ -159,52 +159,43 @@
 								</li>
 							</ol>
 							
-							<h4>Device Type Handler</h4>
+							<h4>Drivers Code</h4>
 							<ol>
-								<li>
-									Login to the Samsung SmartThings account management interface:
-									<a href="https://account.smartthings.com/login" target="_blank">https://account.smartthings.com/login</a>
-								</li>
-								<li>In the <em>SmartThings Groovy IDE</em>, navigate to the <em>My Device Handlers</em> link/page.</li>
-								<li>In the <em>Device Handlers</em> page, click the [+ Create New Device Handler] button.</li>
-								<li>In the <em>Create New Device Handler</em> page, select the <em>From Code</em> tab.</li>
-								<li>From the DB Development Govee LED Strips (DBDEV) GitHub page, copy-and-paste in the code for the Device Type Handler in this form/page.</li>
-								<li>Click [Create] to save and continue.</li>
+								<li>Login to the Hubitat local hub.</li>
+								<li>In the <em>Hubitat IDE</em>, navigate to <em>Drivers Code</em> link/page.</li>
+								<li>In the <em>Drivers Code</em> page, click the [+ New Driver] button.</li>
+								<li>In the <em>New Driver</em> page, from the DB Development Govee LED Strips GitHub page, copy-and-paste in the code for the Driver Code content in this form/page.</li>
+								<li>Click [Save] to save and continue.</li>
 							</ol>
 							
 							<h4>Device</h4>
 							<ol>
+								<li>Login to the Hubitat local hub.</li>
+								<li>In the <em>Hubitat IDE</em>, navigate to <em>Devices</em> link/page.</li>
+								<li>In the <em>Devices</em> page, click the [+ Add VirtualDevice] button.</li>
 								<li>
-									Login to the Samsung SmartThings account management interface:
-									<a href="https://account.smartthings.com/login" target="_blank">https://account.smartthings.com/login</a>
-								</li>
-								<li>In the <em>SmartThings Groovy IDE</em>, navigate to the <em>My Devices</em> link/page.</li>
-								<li>In the <em>Devices</em> page, click the [+ New Device] button.</li>
-								<li>
-									In the <em>Create Device</em> page, setup the following settings:
+									In the <em>New Device</em> page, setup the following settings:
 									<ul>
-										<li>Name: <em>Setup your device name accordingly</em></li>
-										<li>Label: <em>I usually just use the same Name</em></li>
-										<li>Zigbee Id: <em>&lt;leave blank&gt;</em></li>
-										<li>Device Network Id: <em>Use something that is only characters and dashes or underscores (something unique)</em></li>
-										<li>Type: <em>Select Govee LED Strips (DBDEV) from the dropdown list</em></li>
-										<li>Version: <em>Select Self-Published</em></li>
-										<li>Location: <em>Select Home (or whatever your location name is)</em></li>
-										<li>Hub: <em>Select SmartThings Hub (or whatever your hub name is)</em></li>
-										<li>Group: <em>&lt;leave blank&gt;</em></li>
+										<li>Device Name: Govee LED Lights</li>
+										<li>Device Label: Govee LED Lights</li>
+										<li>Zigbee Id: &lt;blank&gt;sd</li>
+										<li>Event history size: &lt;blank&gt;</li>
+										<li>State history size: &lt;blank&gt;</li>
+										<li>Device Network Id: &lt;unchanged&gt;</li>
+										<li>Type: Govee LED Strips</li>
+										<li>Hub mesh enabled: &lt;unchanged&gt;</li>
 									</ul>
-									Once completed, click [Create].
+									Once completed, click [Save Device].
 								</li>
-								<li>Once the page reloads, in the left column, for <em>Preferences</em>, click <em>edit</em>.</li>
+								<li>Once the page reloads, scroll to the <em>Preferences</em> section and set the following:</li>
 								<li>
-									In the edit preferences page, 3 form fields will be preset. Set each of these form fields accordingly below:
 									<ul>
 										<li><strong>Govee API Key - Designated Govee API Key for accessing their system</strong> - this value is given to you by Govee from their app (should be found on the Configuration tab)</li>
 										<li><strong>Govee KED Device ID - Device ID for the Govee LED Lights</strong> - can be found on the Configuration tab</li>
 										<li><strong>Govee LED Model - Model number of the Govee LED Lights</strong> - can be found on the Configuration tab</li>
 									</ul>
 								</li>
-								<li>Once completed, click [Save].</li>
+								<li>Once completed, click [Save Preferences].</li>
 							</ol>
 						</div>
 					</div>
@@ -212,7 +203,7 @@
 				<div id="config" class="tab-pane fade">
 					<div class="panel panel-default">
 						<div class="panel-body">
-							The following form/details below will allow you to confirm your Samsung SmartThings Device preferences accordingly.
+							The following form/details below will allow you to confirm your Hubitat Device preferences accordingly.
 							<br /><br />
 							<label>Govee API Key:</label> <input type="text" name="apikey" id="apikey" class="form-control">
 							<small><em>Designated Govee API Key for accessing their system</em></small>
